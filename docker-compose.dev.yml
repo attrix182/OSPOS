@@ -1,0 +1,41 @@
+version: '3.4'
+
+volumes:
+    uploads:
+        driver: local
+  
+services:
+
+    ospos:
+        build:
+            context: .
+            target: ospos_dev
+        container_name: ospos_dev
+        restart: always
+        depends_on:
+          - mysql
+        ports:
+          - "80:80"
+        volumes:
+          - .:/app
+        environment:
+          - PHP_TIMEZONE=UTC
+          - MYSQL_USERNAME=admin
+          - MYSQL_PASSWORD=pointofsale
+          - MYSQL_DB_NAME=ospos
+          - MYSQL_HOST_NAME=mysql
+          - XDEBUG_CONFIG=remote_host=172.17.0.1
+
+    mysql:
+        image: mariadb:10.5
+        container_name: mysql
+        restart: always
+        ports:
+          - "3306:3306"
+        volumes:
+          - ./database/database.sql:/docker-entrypoint-initdb.d/database.sql
+        environment:
+          - MYSQL_ROOT_PASSWORD=pointofsale
+          - MYSQL_DATABASE=ospos
+          - MYSQL_USER=admin
+          - MYSQL_PASSWORD=pointofsale

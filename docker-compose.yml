@@ -1,0 +1,54 @@
+version: '3.4'
+
+volumes:
+    uploads:
+        driver: local
+    logs:
+        driver: local
+    mysql:
+        driver: local
+
+networks:
+    app_net:
+    db_net:
+
+services:
+    ospos:
+        image: jekkos/opensourcepos:3.4.0
+        restart: always
+        depends_on:
+          - mysql
+        ports:
+          - "127.0.0.1:80:80"
+        networks:
+          - app_net
+          - db_net
+        volumes:
+          - uploads:/app/public/uploads
+          - logs:/app/application/logs
+        environment:
+          - CI_ENV=production
+          - FORCE_HTTPS=false
+          - PHP_TIMEZONE=UTC
+          - MYSQL_USERNAME=admin
+          - MYSQL_PASSWORD=pointofsale
+          - MYSQL_DB_NAME=ospos
+          - MYSQL_HOST_NAME=mysql
+
+    mysql:
+        image: mariadb:10.5
+        container_name: mysql
+        restart: always
+        expose:
+          - "3306"
+        networks:
+          - db_net
+        volumes:
+          - ./database/database.sql:/docker-entrypoint-initdb.d/database.sql
+          - mysql:/var/lib/mysql:rw
+        environment:
+          - MYSQL_ROOT_PASSWORD=pointofsale
+          - MYSQL_DATABASE=ospos
+          - MYSQL_USER=admin
+          - MYSQL_PASSWORD=pointofsale
+
